@@ -1,6 +1,6 @@
 # 6.0001/6.00 Problem Set 5 - RSS Feed Filter
-# Name:
-# Collaborators:
+# Name: Philip Nguyen
+# Collaborators: Duncan Calder
 # Time:
 
 import feedparser
