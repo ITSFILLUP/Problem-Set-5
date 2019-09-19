@@ -1,0 +1,37 @@
+// trigger file for presidential debate on oct 19 2016 at 9pm +/- 3 hours
+
+// title trigger named t1 (TITLE has Presidential)
+t1,TITLE, Presidential
+
+// title trigger named t2 (DESCRIPTION has Trump)
+t2,DESCRIPTION, Trump
+
+// title trigger named t3 (DESCRIPTION has Hillary)
+t3,DESCRIPTION, Hillary
+
+// description trigger named t4 (DESCRIPTION has debate)
+t4,DESCRIPTION, debate
+
+// after trigger named t5 - 3 hours (after 6pm)
+t5,AFTER,19 Oct 2016 18:00:00
+
+// before trigger named t6 + 3 hours (before 12am)
+t6,BEFORE,20 Oct 2016 00:00:00
+
+// composite trigger named t7 (after 6pm and before 12am)
+t7,AND,t5,t6
+
+// composite trigger named t8 (DESCRIPTION has trump and hillary)
+t8,AND,t2,t3
+
+// composite trigger named t9 (TITLE has presidential and DESCRIPTION has debate)
+t9,AND,t1,t4
+
+// composite trigger named t10 (after 6pm and before 12am and DESCRIPTION has trump and hillary)
+t10,AND,t7,t8
+
+// composite trigger named t11 (after 6pm and before 12am and TITLE has presidential and DESCRIPTION has debate)
+t11,AND,t7,t9
+
+// trigger list contains all triggers
+ADD,t10,t11
