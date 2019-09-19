@@ -52,7 +52,7 @@ def process(url):
 # Data structure design
 #======================
 
-# Problem 1
+# Problem 1 -PHILIP
 
 # TODO: NewsStory
 class NewsStory:
@@ -90,7 +90,7 @@ class Trigger(object):
 
 # PHRASE TRIGGERS
 # Return True if phrase is in NewsStory
-# Problem 2
+# Problem 2 -PHILIP
 # TODO: PhraseTrigger
 class PhraseTrigger(Trigger):
     def __init__(self, phrase):
@@ -113,13 +113,13 @@ class PhraseTrigger(Trigger):
                 result = False
         return result
         
-# Problem 3
+# Problem 3 -PHILIP
 # TODO: TitleTrigger
 class TitleTrigger(PhraseTrigger):
     def evaluate(self, story):
         return PhraseTrigger.is_phrase_in(self, story.get_title())
 
-# Problem 4
+# Problem 4 -PHILIP
 # TODO: DescriptionTrigger
 class DescriptionTrigger(PhraseTrigger):
     def evaluate(self, story):
@@ -127,7 +127,7 @@ class DescriptionTrigger(PhraseTrigger):
 
 # TIME TRIGGERS
 
-# Problem 5
+# Problem 5 -PHILIP
 # TODO: TimeTrigger
 # Constructor:
 #        Input: Time has to be in EST and in the format of "%d %b %Y %H:%M:%S".
@@ -135,54 +135,75 @@ class DescriptionTrigger(PhraseTrigger):
 class TimeTrigger(Trigger):
     def __init__(self, pubtime):
         #EST = pytz.timezone("US/Eastern") #create est time zone
-        pubtime = datetime.replace(tzinfo=pytz.timezone("EST")) #put in est time zone
         pubtime = datetime.strptime(pubtime, "%d %b %Y %H:%M:%S") # Parse the time of the string
+        pubtime = pubtime.replace(tzinfo=pytz.timezone("EST")) #Replace est timezone
         self.pubtime = pubtime
 
-# Problem 6
+# Problem 6 -PHILIP
 # TODO: BeforeTrigger and AfterTrigger
 class BeforeTrigger(TimeTrigger):
     def evaluate(self, story):
-        return self.pubtime > story.get_pubdate().replace(tzinfo=pytz.timezone("US/Eastern"))
+        return self.pubtime.replace(tzinfo=pytz.timezone("EST")) > story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
     
 class AfterTrigger(TimeTrigger):
     def evaluate(self, story):
-        return self.pubtime < story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
+        return self.pubtime.replace(tzinfo=pytz.timezone("EST")) < story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
 
 # COMPOSITE TRIGGERS
 
-# Problem 7
+# Problem 7 -DUNCAN
 # TODO: NotTrigger
-
-# Problem 8
+# returns the NOT of the trigger given
+class NotTrigger(Trigger):
+    def __init__(self, trigger):
+        self.trigger = trigger
+    def evaluate(self, story):
+        return not self.trigger.evaluate(story)
+# Problem 8 -DUNCAN
 # TODO: AndTrigger
+# returns the AND of the triggers given
+class AndTrigger(Trigger):
+    def __init__(self, trigger_1, trigger_2):
+        self.trigger_1 = trigger_1
+        self.trigger_2 = trigger_2
 
-# Problem 9
+    def evaluate(self, story):
+        return self.trigger_1.evaluate(story) and self.trigger_2.evaluate(story)
+# Problem 9 -DUNCAN
 # TODO: OrTrigger
+# returns the OR of the triggers given
+class OrTrigger(Trigger):
+    def __init__(self, trigger_1, trigger_2):
+        self.trigger_1 = trigger_1
+        self.trigger_2 = trigger_2
 
+    def evaluate(self, story):
+        return self.trigger_1.evaluate(story) or self.trigger_2.evaluate(story)
 
 #======================
 # Filtering
 #======================
 
-# Problem 10
+# Problem 10 -PHILIP
 def filter_stories(stories, triggerlist):
     """
     Takes in a list of NewsStory instances.
 
     Returns: a list of only the stories for which a trigger in triggerlist fires.
     """
-    # TODO: Problem 10
-    # This is a placeholder
-    # (we're just returning all the stories, with no filtering)
-    return stories
+    stories_firedOn = []
+    for newsstory in stories: # for each story
+        for trigger in triggerlist: # for each trigger
+            if trigger.evaluate(newsstory): # if trigger fires, add it to the list
+                stories_firedOn.append(newsstory)
+    return stories_firedOn
 
 
 
 #======================
 # User-Specified Triggers
 #======================
-# Problem 11
+# Problem 11 -DUNCAN
 def read_trigger_config(filename):
     """
     filename: the name of a trigger configuration file
@@ -199,13 +220,78 @@ def read_trigger_config(filename):
         if not (len(line) == 0 or line.startswith('//')):
             lines.append(line)
 
+    # make list for triggers
+    triggers = []
+    # make dictionary to store trigger names and triggers
+    trigger_names = {}
+    # process lines
+    for line in lines:
+        # split up the line to process
+        split_line = line.split(',')
+        # if ADD
+        if line.startswith('ADD'):
+            # remove ADD from line
+            split_line.pop(0)
+            # for each trigger name in list
+            # look up name and add trigger to list
+            # if not in list then print error for now, change to a real error
+            for trigger_name in split_line:
+                trigger = trigger_names.get(trigger_name)
+                if trigger != None:
+                    triggers.append(trigger)
+                else:
+                    raise Exception("trigger name: %s does not exist in dictionary" % trigger_name)
+        # for each filter title associate the name with the trigger
+        elif(split_line[1] == 'TITLE'):
+            trigger_names[split_line[0]] = TitleTrigger(split_line[2])
+        elif(split_line[1] == 'DESCRIPTION'):
+            trigger_names[split_line[0]] = DescriptionTrigger(split_line[2])
+        elif(split_line[1] == 'AFTER'):
+            trigger_names[split_line[0]] = AfterTrigger(split_line[2])
+        elif(split_line[1] == 'BEFORE'):
+            trigger_names[split_line[0]] = BeforeTrigger(split_line[2])
+        # for the filters that you need to look up the trigger name
+        # look it up and add the trigger to the dict
+        elif(split_line[1] == 'NOT'):
+            trigger = trigger_names.get(split_line[2])
+            if trigger != None:
+                trigger_names[split_line[0]] = NotTrigger(trigger)
+            else:
+                raise Exception("trigger name: %s does not exist in dictionary" % trigger_name)
+        elif(split_line[1] == 'AND'):
+            trigger_1 = trigger_names.get(split_line[2])
+            trigger_2 = trigger_names.get(split_line[3])
+            if (trigger_1 != None) or (trigger_2 != None):
+                trigger_names[split_line[0]] = AndTrigger(trigger_1, trigger_2)
+            else:
+                raise Exception("trigger name: %s does not exist in dictionary" % trigger_name)
+        elif(split_line[1] == 'OR'):
+            trigger_1 = trigger_names.get(split_line[2])
+            trigger_2 = trigger_names.get(split_line[3])
+            if (trigger_1 != None) or (trigger_2 != None):
+                trigger_names[split_line[0]] = OrTrigger(trigger_1, trigger_2)
+            else:
+                raise Exception("trigger name: %s does not exist in dictionary" % trigger_name)
+    return triggers
+    # TITLE​: one phrase
+    # DESCRIPTION​: one phrase
+    # AFTER​: one correctly formatted time string
+    # BEFORE​: one correctly formatted time string
+    # NOT​: the name of the trigger that will be NOT'd
+    # AND​: the names of the two triggers that will be AND'd.
+    # OR​: the names of the two triggers that will be OR'd.
     # TODO: Problem 11
     # line is the list of lines that you need to parse and for which you need
     # to build triggers
-
-    print(lines) # for now, print it so you see what it contains!
-
-
+    # use dictionary to match trigger names to values
+    # switch statement?
+    # parse each line by storing the trigger name in a dictionary
+    # and evaluating the given trigger and storing it into the value
+    # Use a switch or an if else group to match the trigger in the link
+    # to the trigger and evaluates it on the current story with the given arguments
+    # for title and description there will be one string parameter
+    # for not, and, or triggers there will be one two and two respectfully
+    # if ADD is seen then create a list of triggers into filter stories function
 
 SLEEPTIME = 120 #seconds -- how often we poll
 
@@ -213,15 +299,15 @@ def main_thread(master):
     # A sample trigger list - you might need to change the phrases to correspond
     # to what is currently in the news
     try:
-        t1 = TitleTrigger("election")
-        t2 = DescriptionTrigger("Trump")
-        t3 = DescriptionTrigger("Clinton")
+        t1 = TitleTrigger("school")
+        t2 = DescriptionTrigger("New York")
+        t3 = DescriptionTrigger("Iran")
         t4 = AndTrigger(t2, t3)
-        triggerlist = [t1, t4]
+        triggerlist = [t1,t2,t3,t4]
 
         # Problem 11
         # TODO: After implementing read_trigger_config, uncomment this line 
-        # triggerlist = read_trigger_config('triggers.txt')
+        triggerlist = read_trigger_config('triggers.txt')
         
         # HELPER CODE - you don't need to understand this!
         # Draws the popup window that displays the filtered stories

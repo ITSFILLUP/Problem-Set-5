@@ -1,0 +1,22 @@
+// trigger file for presidential debate on oct 19 2016 at 9pm +/- 3 hours
+
+// title trigger named t1
+t1, TITLE, Presidential
+
+// title trigger named t2
+t2, TITLE, Trump
+
+// title trigger named t3
+t3, TITLE, Hillary
+
+// description trigger named t4
+t4, DESCRIPTION, debate
+
+// before trigger named t5 - 3 hours
+t5, BEFORE,19 Oct 2016 18:00:00
+
+// after trigger named t6 + 3 hours
+t6, AFTER,20 Oct 2016 00:00:00
+
+// trigger list contains all triggers
+ADD,t1,t2,t3,t4,t5,t6
