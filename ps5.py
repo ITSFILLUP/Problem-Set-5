@@ -1,7 +1,7 @@
 # 6.0001/6.00 Problem Set 5 - RSS Feed Filter
 # Name: Philip Nguyen
 # Collaborators: Duncan Calder
-# Time:
+# Time: Few Hours to a Day, throughout the week
 
 import feedparser
 import string
@@ -73,6 +73,26 @@ class NewsStory:
     def get_pubdate(self):
         return self.pubdate
     
+## Problem 1 - Duncan
+#class NewsStory(object):
+#    def __init__(self, guid, title, description, link, pubdate):
+#        self.guid = guid
+#        self.title = title
+#        self.description = description
+#        self.link = link
+#        self.pubdate = pubdate
+#        
+#    def get_guid(self):
+#        return self.guid
+#    def get_title(self):
+#        return self.title
+#    def get_description(self):
+#        return self.description
+#    def get_link(self):
+#        return self.link
+#    def get_pubdate(self):
+#        return self.pubdate
+    
 
 
 #======================
@@ -112,6 +132,73 @@ class PhraseTrigger(Trigger):
             if wordIndex[i+1] - wordIndex[i] != 1:
                 result = False
         return result
+
+#PhraseTrigger - Duncan
+#Problem 2
+#charachterised by words containing one space between them
+#can assume that there is no punctuation
+#need to figure out how to detect multiple spaces in a row
+#convert to lowercase to search
+#take out all punctuation and spaces to search - string.punctuation
+#also use split, replace, and join methods
+#takes in string phrase
+#is_phrase_in
+#'''
+    
+#class PhraseTrigger(Trigger):
+#    def __init__(self, phrase):
+#        self.phrase = phrase.lower()
+#    
+#    def is_phrase_in(self, text):
+#        '''
+#        >>> text = "purple!!!cow"
+#        >>> punctuation = string.punctuation
+#        >>> text_removed = text
+#        >>> for punct in punctuation:
+#        ...     text_removed = text_removed.replace(punct, '')
+#        >>> print(text_removed)
+#        purplecow
+#        >>>
+#        # need to figure out how to remove extra spaces but leave one between two words in the phrase
+#        # if punctuation found replace with space then go through process below
+#        # if space found and there is a space after, remove the spaces after
+#        # also need to stop it from finding when it is contained in another word
+#        # for loop looking through string, when it finds a space or a punctuation
+#            # turn into a space
+#                # look for more spaces or punctuation but just remove it, if something not space or punctuation is found update iteration and keep looking
+#        # if there isn't a space at the end then add one
+#        '''
+#        text = text.lower()
+#        punctuation = string.punctuation
+#        text_removed = ""
+#        i = 0
+#        text_length = len(text)
+#        while i < text_length:
+#            if text[i] == " " or text[i] in punctuation:
+#                text_removed = text_removed + " "
+#                if i < text_length - 1:
+#                    i+=1
+#                else:
+#                    break
+#                while i < text_length and text[i] == " " or text[i] in punctuation:
+#                    if i < text_length - 1:
+#                        i+=1
+#                    else:
+#                        break
+#            else:
+#                text_removed = text_removed + text[i]
+#                if i < text_length - 1:
+#                    i+=1
+#                else:
+#                    break
+#        if len(text_removed) > 0 and text_removed[len(text_removed)-1] != " ":
+#            text_removed = text_removed + " "
+#        if len(text_removed) > 0 and self.phrase[len(self.phrase)-1] != " ":
+#            self.phrase = self.phrase + " "
+#        if text_removed.find(self.phrase) > -1:
+#            return True
+#        else:
+#            return False
         
 # Problem 3 -PHILIP
 # TODO: TitleTrigger
@@ -124,6 +211,36 @@ class TitleTrigger(PhraseTrigger):
 class DescriptionTrigger(PhraseTrigger):
     def evaluate(self, story):
         return PhraseTrigger.is_phrase_in(self, story.get_description())
+    
+#TitleTrigger - Duncan
+#Problem 3
+#triggers when a NewsStory's title contains the phrase
+#inherits from PhraseTrigger
+#uses is_phrase_in from PraseTrigger to evaluate the title
+#'''
+#
+#class TitleTrigger(PhraseTrigger):
+#    def __init__(self, phrase):
+#        self.phrase = phrase.lower()
+#    
+#    def evaluate(self, story):
+#        return self.is_phrase_in(story.get_title())
+#
+#'''
+#Description Trigger - Duncan
+#Problem 4
+#triggers when a NewsStory's description contains the phrase
+#inherits from PhraseTrigger
+#uses is_phrase_in from PraseTrigger to evaluate the description
+#'''
+#class DescriptionTrigger(PhraseTrigger):
+#    def __init__(self, phrase):
+#        self.phrase = phrase.lower()
+#
+#    def evaluate(self, story):
+#        return self.is_phrase_in(story.get_description())
+## TODO: DescriptionTrigger
+
 
 # TIME TRIGGERS
 
@@ -138,6 +255,18 @@ class TimeTrigger(Trigger):
         pubtime = datetime.strptime(pubtime, "%d %b %Y %H:%M:%S") # Parse the time of the string
         pubtime = pubtime.replace(tzinfo=pytz.timezone("EST")) #Replace est timezone
         self.pubtime = pubtime
+        
+#TimeTrigger - Duncan
+#Problem 5
+#Constructor:
+#        Input: Time has to be in EST and in the format of "%d %b %Y %H:%M:%S".
+#        Convert time from string to a datetime before saving it as an attribute.
+#'''
+#class TimeTrigger(Trigger):
+#    def __init__(self, time):
+#        time = datetime.strptime(time, "%d %b %Y %H:%M:%S")
+#        time = time.replace(tzinfo=pytz.timezone('EST'))
+#        self.time = time
 
 # Problem 6 -PHILIP
 # TODO: BeforeTrigger and AfterTrigger
@@ -148,6 +277,41 @@ class BeforeTrigger(TimeTrigger):
 class AfterTrigger(TimeTrigger):
     def evaluate(self, story):
         return self.pubtime.replace(tzinfo=pytz.timezone("EST")) < story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
+    
+    
+#BeforeTrigger - Duncan
+#Problem 6
+#is an instance of TimeTrigger and triggers when 
+#the time is strictly after the given time
+#'''
+#class BeforeTrigger(TimeTrigger):
+#    def __init__(self, time):
+#        TimeTrigger.__init__(self, time)
+#    def evaluate(self, story):
+#        story_time = story.get_pubdate().replace(tzinfo=None)
+#        search_time = self.time.replace(tzinfo=None)
+#        if story_time < search_time:
+#            return True
+#        else:
+#            return False
+#
+#'''
+#AfterTrigger - Duncan
+#is an instance of TimeTrigger and triggers when
+#the time is strictly after the given time
+#'''
+#class AfterTrigger(TimeTrigger):
+#    def __init__(self, time):
+#        TimeTrigger.__init__(self, time)
+#
+#    def evaluate(self, story):
+#        story_time = story.get_pubdate().replace(tzinfo=None)
+#        search_time = self.time.replace(tzinfo=None)
+#        if story_time > search_time:
+#            return True
+#        else:
+#            return False
+## TODO: BeforeTrigger and AfterTrigger
 
 # COMPOSITE TRIGGERS
 
@@ -299,15 +463,15 @@ def main_thread(master):
     # A sample trigger list - you might need to change the phrases to correspond
     # to what is currently in the news
     try:
-        t1 = TitleTrigger("school")
-        t2 = DescriptionTrigger("New York")
-        t3 = DescriptionTrigger("Iran")
-        t4 = AndTrigger(t2, t3)
-        triggerlist = [t1,t2,t3,t4]
+        #t1 = TitleTrigger("school")
+        #t2 = DescriptionTrigger("New York")
+        #t3 = DescriptionTrigger("Iran")
+        #t4 = AndTrigger(t2, t3)
+        #triggerlist = [t1,t2,t3,t4]
 
         # Problem 11
         # TODO: After implementing read_trigger_config, uncomment this line 
-        triggerlist = read_trigger_config('triggers.txt')
+        #triggerlist = read_trigger_config('triggers.txt')
         
         # HELPER CODE - you don't need to understand this!
         # Draws the popup window that displays the filtered stories
@@ -358,10 +522,28 @@ def main_thread(master):
         print(e)
 
 
-if __name__ == '__main__':
-    root = Tk()
-    root.title("Some RSS parser")
-    t = threading.Thread(target=main_thread, args=(root,))
-    t.start()
-    root.mainloop()
+if __name__ == '__main__': # added test code in main because the code did not run
+    
+    import doctest
+    doctest.testmod()
+    # # Get stories from Google's Top Stories RSS news feed
+    stories = process("http://news.google.com/news?output=rss")
+
+    # # Get stories from Yahoo's Top Stories RSS news feed
+    stories.extend(process("http://news.yahoo.com/rss/topstories"))
+
+    triggerlist = read_trigger_config('triggers.txt')
+    filtered_stories = filter_stories(stories, triggerlist)
+
+    for news_story in filtered_stories:
+        print("Title: %s" % news_story.get_title())
+        print("%s" % news_story.get_description())
+        print("Date: %s" % news_story.get_pubdate())
+        print("Link: %s" % news_story.get_link())
+        print("---------------------------------------------------------------")
+    #root = Tk()
+    #root.title("Some RSS parser")
+    #t = threading.Thread(target=main_thread, args=(root,))
+    #t.start()
+    #root.mainloop()
 
